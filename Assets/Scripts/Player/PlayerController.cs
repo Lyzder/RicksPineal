@@ -12,17 +12,25 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpSpeed;
     [SerializeField] private float bounceSpeed;
+    [SerializeField] private LayerMask levelCollisionLayer;
     private short moveDirection;
     private Vector2 moveInput;
     [Header("Ground check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private Vector2 groundCheckSize;
-    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Transform groundCheckLeft;
+    [SerializeField] private Transform groundCheckRight;
+    [SerializeField] private float groundCheckDistance;
     [SerializeField] private float coyoteTime;
     private float coyoteTimer;
     private bool isGrounded;
     private bool jumpQueued;
     private bool jumped;
+    [Header("Wall Slide")]
+    [SerializeField] private float slowSlideSpeed;
+    [SerializeField] private float fastSlideSpeed;
+    [SerializeField] private Transform wallCheckPoint;
+    [SerializeField] private float wallCheckDistance;
+    private bool isTouchingWall;
+    private bool isWallSliding;
     [Header("Sats")]
     [SerializeField] private short hp;
     [SerializeField] private short maxHp;
@@ -70,6 +78,7 @@ public class PlayerController : MonoBehaviour
         Default = 0,
         Damage = 1,
         Firing = 2,
+        WallSlide = 3,
     }
     public States playerState {  get; private set; }
     // Events
@@ -120,7 +129,8 @@ public class PlayerController : MonoBehaviour
         //GameManager.Instance.OnWinning -= DisableControls;
     }
 
-    // Update is called once per frame
+    // START UPDATE METHODS
+    
     void Update()
     {
         //if (!isAlive)
@@ -140,18 +150,23 @@ public class PlayerController : MonoBehaviour
         {
             Jump();
         }
-        Move();
+        CheckWall();
         CheckGrounded();
+        Move();
     }
+
+    // END UPATE METHODS
+
+    // START MOVEMENT METHODS
 
     private void Move()
     {
-        if (moveInput.x == 0)
-        {
-            rb.velocity = new Vector3(0, rb.velocity.y);
-        }
-        else
-            rb.velocity = new Vector2(moveSpeed * moveInput.x, rb.velocity.y);
+        Vector2 newVelocity = rb.velocity;
+
+        // Apply horizontal movement only if no wall is being pushed into
+        newVelocity.x = moveInput.x * moveSpeed;
+
+        rb.velocity = newVelocity;
     }
 
     private void Jump()
@@ -160,9 +175,51 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(new Vector2(0, jumpSpeed), ForceMode2D.Impulse);
         jumpQueued = false;
         jumped = true;
-        Instantiate(jumpEffect, groundCheck.position + jumpEffectOffset, Quaternion.identity);
+        //Instantiate(jumpEffect, groundCheckLeft.position + jumpEffectOffset, Quaternion.identity);
         //AudioManager.Instance.PlaySFX(jumpSfx);
     }
+
+    private void CheckGrounded()
+    {
+        bool hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        bool hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        isGrounded = hitLeft || hitRight;
+
+        if (isGrounded)
+        {
+            coyoteTimer = 0;
+            jumped = false;
+            //stompHitbox.enabled = false;
+            //collider2d.size = new Vector2(0.8f, 0.89f);
+        }
+        else if (playerState != States.Damage)
+        {
+            //stompHitbox.enabled = true;
+            //collider2d.size = new Vector2(0.8f, 0.65f);
+        }
+    }
+
+    private void CheckWall()
+    {
+        Vector2 direction = moveInput.x > 0 ? Vector2.right : Vector2.left;
+        isTouchingWall = Physics2D.Raycast(wallCheckPoint.position, direction, wallCheckDistance, levelCollisionLayer);
+
+        // Wall slide only when airborne, moving into wall, and touching wall
+        // Player doesn't need to hold the direction to stay sliding
+        if (!isWallSliding)
+            isWallSliding = isTouchingWall && !isGrounded && moveInput.x != 0;
+        else
+            isWallSliding = isTouchingWall && !isGrounded;
+
+        // Slow slide by default, fast if pressing down
+        if (isWallSliding)
+        {
+            float slideSpeed = (moveInput.y < 0) ? fastSlideSpeed : slowSlideSpeed;
+            rb.velocity = new Vector2(rb.velocity.x, -slideSpeed);
+        }
+    }
+
+    // END MOVEMENT METHODS
 
     //private void Shoot()
     //{
@@ -191,6 +248,8 @@ public class PlayerController : MonoBehaviour
     //    }
     //    AudioManager.Instance.PlaySFX(shootSfx);
     //}
+
+    // START INPUT READING METHODS
 
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
@@ -237,20 +296,22 @@ public class PlayerController : MonoBehaviour
         //Shoot();
     }
 
+    // END INPUT READING METHODS
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Solid"))
-        {
-            ContactPoint2D contact = collision.GetContact(0);
-            Vector2 normal = contact.normal;
+        //if (collision.gameObject.CompareTag("Solid"))
+        //{
+        //    ContactPoint2D contact = collision.GetContact(0);
+        //    Vector2 normal = contact.normal;
 
-            if (Mathf.Abs(normal.x) > Mathf.Abs(normal.y))
-            {
-                ChangeDirection();
-                TemporarilyIgnoreCollision(0.1f);
-            }
-        }
-        else if (collision.gameObject.CompareTag("Enemy"))
+        //    if (Mathf.Abs(normal.x) > Mathf.Abs(normal.y))
+        //    {
+        //        ChangeDirection();
+        //        TemporarilyIgnoreCollision(0.1f);
+        //    }
+        //}
+        if (collision.gameObject.CompareTag("Enemy"))
         {
             //TODO
             TakeDamage();
@@ -261,22 +322,22 @@ public class PlayerController : MonoBehaviour
     {
         if (ignoreCollision)
             return;
-        if (collision.gameObject.CompareTag("Solid"))
-        {
-            ContactPoint2D[] contacts = collision.contacts;
-            Vector2 normal;
-            foreach (ContactPoint2D contactPoint in contacts)
-            {
-                normal = contactPoint.normal;
+        //if (collision.gameObject.CompareTag("Solid"))
+        //{
+        //    ContactPoint2D[] contacts = collision.contacts;
+        //    Vector2 normal;
+        //    foreach (ContactPoint2D contactPoint in contacts)
+        //    {
+        //        normal = contactPoint.normal;
 
-                if (Mathf.Abs(normal.x) > Mathf.Abs(normal.y))
-                {
-                    ChangeDirection();
-                    TemporarilyIgnoreCollision(0.1f);
-                    return;
-                }
-            }
-        }
+        //        if (Mathf.Abs(normal.x) > Mathf.Abs(normal.y))
+        //        {
+        //            ChangeDirection();
+        //            TemporarilyIgnoreCollision(0.1f);
+        //            return;
+        //        }
+        //    }
+        //}
     }
 
     public void TemporarilyIgnoreCollision(float duration)
@@ -291,23 +352,6 @@ public class PlayerController : MonoBehaviour
         ignoreCollision = false;
     }
 
-    private void CheckGrounded()
-    {
-        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, groundLayer);
-        if (isGrounded)
-        {
-            coyoteTimer = 0;
-            jumped = false;
-            stompHitbox.enabled = false;
-            collider2d.size = new Vector2(0.8f, 0.89f);
-        }
-        else if (playerState != States.Damage)
-        {
-            stompHitbox.enabled = true;
-            collider2d.size = new Vector2(0.8f, 0.65f);
-        }
-    }
-
     private void RunCoyoteTimer()
     {
         if (coyoteTimer < coyoteTime)
@@ -319,10 +363,20 @@ public class PlayerController : MonoBehaviour
     // For debug visualization
     private void OnDrawGizmosSelected()
     {
-        if (groundCheck != null)
+        if (groundCheckLeft != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
+            Gizmos.DrawWireCube(groundCheckLeft.position, new (0.05f, groundCheckDistance));
+        }
+        if (groundCheckRight != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(groundCheckRight.position, new (0.05f, groundCheckDistance));
+        }
+        if (wallCheckPoint != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireCube(wallCheckPoint.position, new (wallCheckDistance, 0.05f));
         }
     }
 
