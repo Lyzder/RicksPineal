@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -27,6 +28,7 @@ public class PlayerController : MonoBehaviour
     [Header("Wall Slide")]
     [SerializeField] private float slowSlideSpeed;
     [SerializeField] private float fastSlideSpeed;
+    [SerializeField] private float wallJumpSpeed;
     [SerializeField] private Transform wallCheckPoint;
     [SerializeField] private float wallCheckDistance;
     private bool isTouchingWall;
@@ -139,7 +141,7 @@ public class PlayerController : MonoBehaviour
         //    RunCoyoteTimer();
         //if (shotCdTimer > 0)
         //    AttackCooldown();
-        //UpdateAnimator();
+        UpdateAnimator();
     }
 
     private void FixedUpdate()
@@ -171,10 +173,17 @@ public class PlayerController : MonoBehaviour
 
     private void Jump()
     {
-        rb.velocity = new Vector2(rb.velocity.x, 0);
-        rb.AddForce(new Vector2(0, jumpSpeed), ForceMode2D.Impulse);
-        jumpQueued = false;
-        jumped = true;
+        if (isWallSliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
+        }
+        else
+        {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
+            rb.AddForce(new Vector2(0, jumpSpeed), ForceMode2D.Impulse);
+            jumpQueued = false;
+            jumped = true;
+        }
         //Instantiate(jumpEffect, groundCheckLeft.position + jumpEffectOffset, Quaternion.identity);
         //AudioManager.Instance.PlaySFX(jumpSfx);
     }
@@ -201,7 +210,7 @@ public class PlayerController : MonoBehaviour
 
     private void CheckWall()
     {
-        Vector2 direction = moveInput.x > 0 ? Vector2.right : Vector2.left;
+        Vector2 direction = moveDirection > 0 ? Vector2.right : Vector2.left;
         isTouchingWall = Physics2D.Raycast(wallCheckPoint.position, direction, wallCheckDistance, levelCollisionLayer);
 
         // Wall slide only when airborne, moving into wall, and touching wall
@@ -209,7 +218,7 @@ public class PlayerController : MonoBehaviour
         if (!isWallSliding)
             isWallSliding = isTouchingWall && !isGrounded && moveInput.x != 0;
         else
-            isWallSliding = isTouchingWall && !isGrounded;
+             isWallSliding = isTouchingWall && !isGrounded;
 
         // Slow slide by default, fast if pressing down
         if (isWallSliding)
@@ -277,7 +286,7 @@ public class PlayerController : MonoBehaviour
     {
         if (playerState == States.Damage)
             return;
-        if (isGrounded || (coyoteTimer < coyoteTime && !jumped)) {
+        if (isGrounded || (coyoteTimer < coyoteTime && !jumped) || isWallSliding) {
             jumpQueued = true;
         }
     }
@@ -396,7 +405,7 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateAnimator()
     {
-        animator.SetFloat("HorizontalSpeed", moveSpeed);
+        animator.SetFloat("HorizontalSpeed", math.abs(rb.velocity.x));
         animator.SetFloat("VerticalSpeed", rb.velocity.y);
     }
 
