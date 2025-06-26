@@ -167,9 +167,12 @@ MonoBehaviour:
   coyoteTime: 0.08
   slowSlideSpeed: 1
   fastSlideSpeed: 3
-  wallJumpSpeed: 0
+  wallJumpSpeedHorizontal: 10
+  wallJumpSpeedVertical: 10
   wallCheckPoint: {fileID: 390746364}
   wallCheckDistance: 0.1
+  wallRegrabCooldown: 0.5
+  wallJumpControlLockTime: 1
   hp: 0
   maxHp: 0
   ammo: 0

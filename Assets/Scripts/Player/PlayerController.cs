@@ -28,11 +28,16 @@ public class PlayerController : MonoBehaviour
     [Header("Wall Slide")]
     [SerializeField] private float slowSlideSpeed;
     [SerializeField] private float fastSlideSpeed;
-    [SerializeField] private float wallJumpSpeed;
+    [SerializeField] private float wallJumpSpeedHorizontal;
+    [SerializeField] private float wallJumpSpeedVertical;
     [SerializeField] private Transform wallCheckPoint;
     [SerializeField] private float wallCheckDistance;
+    [SerializeField] private float wallRegrabCooldown;
+    [SerializeField] private float wallJumpControlLockTime;
+    private float wallJumpControlTimer = 0f;
     private bool isTouchingWall;
     private bool isWallSliding;
+    private float regrabTimer;
     [Header("Sats")]
     [SerializeField] private short hp;
     [SerializeField] private short maxHp;
@@ -98,6 +103,7 @@ public class PlayerController : MonoBehaviour
         coyoteTimer = 0;
         jumpQueued = false;
         jumped =  false;
+        isWallSliding = false;
         isAlive = true;
         // Initialize Input Actions
         inputActions = new InputSystem_Actions();
@@ -141,6 +147,10 @@ public class PlayerController : MonoBehaviour
         //    RunCoyoteTimer();
         //if (shotCdTimer > 0)
         //    AttackCooldown();
+        if (regrabTimer > 0)
+            WallRegrabTimer();
+        if (wallJumpControlTimer > 0)
+            WallJumpSpeedTimer();
         UpdateAnimator();
     }
 
@@ -148,13 +158,13 @@ public class PlayerController : MonoBehaviour
     {
         if (!isAlive)
             return;
+        CheckWall();
+        CheckGrounded();
+        Move();
         if (jumpQueued)
         {
             Jump();
         }
-        CheckWall();
-        CheckGrounded();
-        Move();
     }
 
     // END UPATE METHODS
@@ -165,8 +175,11 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 newVelocity = rb.velocity;
 
-        // Apply horizontal movement only if no wall is being pushed into
-        newVelocity.x = moveInput.x * moveSpeed;
+        float controlPercent = Mathf.Clamp01(1f - (wallJumpControlTimer / wallJumpControlLockTime));
+
+        float blendedHorizontal = Mathf.Lerp(newVelocity.x, moveInput.x * moveSpeed, controlPercent);
+
+        newVelocity.x = blendedHorizontal;
 
         rb.velocity = newVelocity;
     }
@@ -176,14 +189,18 @@ public class PlayerController : MonoBehaviour
         if (isWallSliding)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
+            rb.AddForce(new Vector2(wallJumpSpeedHorizontal * moveDirection * -1, wallJumpSpeedVertical), ForceMode2D.Impulse);
+            wallJumpControlTimer = wallJumpControlLockTime;
+            ChangeDirection();
         }
         else
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(new Vector2(0, jumpSpeed), ForceMode2D.Impulse);
-            jumpQueued = false;
-            jumped = true;
         }
+        regrabTimer = wallRegrabCooldown;
+        jumpQueued = false;
+        jumped = true;
         //Instantiate(jumpEffect, groundCheckLeft.position + jumpEffectOffset, Quaternion.identity);
         //AudioManager.Instance.PlaySFX(jumpSfx);
     }
@@ -210,6 +227,9 @@ public class PlayerController : MonoBehaviour
 
     private void CheckWall()
     {
+        if (regrabTimer > 0)
+            return;
+
         Vector2 direction = moveDirection > 0 ? Vector2.right : Vector2.left;
         isTouchingWall = Physics2D.Raycast(wallCheckPoint.position, direction, wallCheckDistance, levelCollisionLayer);
 
@@ -563,5 +583,19 @@ public class PlayerController : MonoBehaviour
     private void DisableControls()
     {
         inputActions.Disable();
+    }
+
+    private void WallRegrabTimer()
+    {
+        if (regrabTimer > 0)
+            regrabTimer -= Time.deltaTime;
+    }
+
+    private void WallJumpSpeedTimer()
+    {
+        if (wallJumpControlTimer > 0)
+            wallJumpControlTimer -= Time.deltaTime;
+        else if (isGrounded)
+            wallJumpControlTimer = 0;
     }
 }
