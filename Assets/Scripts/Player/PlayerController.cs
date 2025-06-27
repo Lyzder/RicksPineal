@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 moveInput;
     [Header("Ground check")]
     [SerializeField] private Transform groundCheckLeft;
+    [SerializeField] private Transform groundCheckCenter;
     [SerializeField] private Transform groundCheckRight;
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private float coyoteTime;
@@ -89,7 +90,7 @@ public class PlayerController : MonoBehaviour
         Firing = 2,
         WallSlide = 3,
     }
-    public States playerState {  get; private set; }
+    public States playerState { get; private set; }
     // Events
     public event Action<short> OnHealthChanged;
     public event Action<short> OnAmmoChanged;
@@ -104,7 +105,7 @@ public class PlayerController : MonoBehaviour
         moveDirection = 1;
         coyoteTimer = 0;
         jumpQueued = false;
-        jumped =  false;
+        jumped = false;
         isWallSliding = false;
         isAlive = true;
         // Initialize Input Actions
@@ -140,7 +141,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // START UPDATE METHODS
-    
+
     void Update()
     {
         //if (!isAlive)
@@ -224,8 +225,9 @@ public class PlayerController : MonoBehaviour
     private void CheckGrounded()
     {
         bool hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        bool hitCenter = Physics2D.Raycast(groundCheckCenter.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
         bool hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
-        isGrounded = hitLeft || hitRight;
+        isGrounded = hitLeft || hitRight || hitCenter;
 
         if (isGrounded)
         {
@@ -254,7 +256,7 @@ public class PlayerController : MonoBehaviour
         if (!isWallSliding)
             isWallSliding = isTouchingWall && !isGrounded && moveInput.x != 0;
         else
-             isWallSliding = isTouchingWall && !isGrounded;
+            isWallSliding = isTouchingWall && !isGrounded;
 
         // Slow slide by default, fast if pressing down
         if (isWallSliding)
@@ -412,17 +414,22 @@ public class PlayerController : MonoBehaviour
         if (groundCheckLeft != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireCube(groundCheckLeft.position, new (0.05f, groundCheckDistance));
+            Gizmos.DrawWireCube(groundCheckLeft.position, new(0.05f, groundCheckDistance));
+        }
+        if (groundCheckCenter != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(groundCheckCenter.position, new(0.05f, groundCheckDistance));
         }
         if (groundCheckRight != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireCube(groundCheckRight.position, new (0.05f, groundCheckDistance));
+            Gizmos.DrawWireCube(groundCheckRight.position, new(0.05f, groundCheckDistance));
         }
         if (wallCheckPoint != null)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireCube(wallCheckPoint.position, new (wallCheckDistance, 0.05f));
+            Gizmos.DrawWireCube(wallCheckPoint.position, new(wallCheckDistance, 0.05f));
         }
     }
 
