@@ -9,6 +9,8 @@ using UnityEngine.InputSystem.Controls;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Sprite")]
+    [SerializeField] private GameObject spriteObject;
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpSpeed;
@@ -96,7 +98,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = spriteObject.GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         collider2d = GetComponent<BoxCollider2D>();
         moveDirection = 1;
@@ -152,6 +154,8 @@ public class PlayerController : MonoBehaviour
         if (wallJumpControlTimer > 0)
             WallJumpSpeedTimer();
         UpdateAnimator();
+        UpdateDirection();
+        AdjustSpritePosition();
     }
 
     private void FixedUpdate()
@@ -175,13 +179,24 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 newVelocity = rb.velocity;
 
-        float controlPercent = Mathf.Clamp01(1f - (wallJumpControlTimer / wallJumpControlLockTime));
+        float controlPercent = 1f - Mathf.Pow(wallJumpControlTimer / wallJumpControlLockTime, 2f);
 
-        float blendedHorizontal = Mathf.Lerp(newVelocity.x, moveInput.x * moveSpeed, controlPercent);
+        float targetVelocityX = moveInput.x * moveSpeed;
 
-        newVelocity.x = blendedHorizontal;
+        // During wall jump lockout, limit control
+        if (wallJumpControlTimer > 0f)
+        {
+            newVelocity.x = Mathf.Lerp(wallJumpSpeedHorizontal * moveDirection, targetVelocityX, controlPercent);
+        }
+        else
+        {
+            // Full control
+            newVelocity.x = targetVelocityX;
+        }
 
         rb.velocity = newVelocity;
+
+        wallCheckPoint.localPosition = new Vector3(0.5f * moveDirection, 0);
     }
 
     private void Jump()
@@ -191,6 +206,7 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(new Vector2(wallJumpSpeedHorizontal * moveDirection * -1, wallJumpSpeedVertical), ForceMode2D.Impulse);
             wallJumpControlTimer = wallJumpControlLockTime;
+            isWallSliding = false;
             ChangeDirection();
         }
         else
@@ -285,16 +301,16 @@ public class PlayerController : MonoBehaviour
         if (playerState == States.Damage)
             return;
         moveInput = ctx.ReadValue<Vector2>();
-        if (moveInput.x > 0)
-        {
-            moveDirection = 1;
-            FlipSprite();
-        }
-        else if (moveInput.x < 0)
-        {
-            moveDirection = -1;
-            FlipSprite();
-        }
+        //if (moveInput.x > 0)
+        //{
+        //    moveDirection = 1;
+        //    FlipSprite();
+        //}
+        //else if (moveInput.x < 0)
+        //{
+        //    moveDirection = -1;
+        //    FlipSprite();
+        //}
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
@@ -306,7 +322,8 @@ public class PlayerController : MonoBehaviour
     {
         if (playerState == States.Damage)
             return;
-        if (isGrounded || (coyoteTimer < coyoteTime && !jumped) || isWallSliding) {
+        if (isGrounded || isWallSliding)
+        { //|| (coyoteTimer < coyoteTime && !jumped) 
             jumpQueued = true;
         }
     }
@@ -413,6 +430,7 @@ public class PlayerController : MonoBehaviour
     {
         moveDirection *= -1;
         FlipSprite();
+        wallCheckPoint.localPosition = new Vector3(0.5f * moveDirection, 0);
     }
 
     private void FlipSprite()
@@ -427,6 +445,23 @@ public class PlayerController : MonoBehaviour
     {
         animator.SetFloat("HorizontalSpeed", math.abs(rb.velocity.x));
         animator.SetFloat("VerticalSpeed", rb.velocity.y);
+        animator.SetBool("IsWallSliding", isWallSliding);
+    }
+
+    private void UpdateDirection()
+    {
+        if (wallJumpControlTimer > 0)
+            return;
+        if (moveInput.x > 0)
+        {
+            moveDirection = 1;
+            spriteRenderer.flipX = false;
+        }
+        else if (moveInput.x < 0)
+        {
+            moveDirection = -1;
+            spriteRenderer.flipX = true;
+        }
     }
 
     public void TakeDamage()
@@ -494,7 +529,6 @@ public class PlayerController : MonoBehaviour
         playerState = States.Default;
         animator.ResetTrigger("IsRecovered");
         animator.SetTrigger("IsRecovered");
-        ChangeDirection();
     }
 
     private void DamageRecoil(float mult)
@@ -595,7 +629,19 @@ public class PlayerController : MonoBehaviour
     {
         if (wallJumpControlTimer > 0)
             wallJumpControlTimer -= Time.deltaTime;
-        else if (isGrounded)
+        if (isGrounded)
             wallJumpControlTimer = 0;
+    }
+
+    private void AdjustSpritePosition()
+    {
+        if (isWallSliding)
+        {
+            spriteObject.transform.localPosition = new Vector3(0.25f * moveDirection, 0);
+        }
+        else
+        {
+            spriteObject.transform.localPosition = Vector3.zero;
+        }
     }
 }

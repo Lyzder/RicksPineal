@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Falling
+  m_Name: WallAttach
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,9 +21,9 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: 426894549, guid: 58ead1b0f783918479d59aab5b4bb730, type: 3}
+      value: {fileID: 1329255701, guid: a6fa1e57551bcb34caed67ad5aaa1a77, type: 3}
     - time: 0.083333336
-      value: {fileID: 301251724, guid: 58ead1b0f783918479d59aab5b4bb730, type: 3}
+      value: {fileID: 1329255701, guid: a6fa1e57551bcb34caed67ad5aaa1a77, type: 3}
     attribute: m_Sprite
     path: Sprite
     classID: 212
@@ -46,8 +46,8 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: 426894549, guid: 58ead1b0f783918479d59aab5b4bb730, type: 3}
-    - {fileID: 301251724, guid: 58ead1b0f783918479d59aab5b4bb730, type: 3}
+    - {fileID: 1329255701, guid: a6fa1e57551bcb34caed67ad5aaa1a77, type: 3}
+    - {fileID: 1329255701, guid: a6fa1e57551bcb34caed67ad5aaa1a77, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
