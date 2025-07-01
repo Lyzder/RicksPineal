@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour
         isWallSliding = false;
         isAlive = true;
         // Initialize Input Actions
-        inputActions = new InputSystem_Actions();
+        inputActions = InputManager.Instance.inputActions;
     }
 
     // Start is called before the first frame update
@@ -122,7 +122,8 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
-        inputActions.Enable();
+        inputActions.Player.Enable();
+        inputActions.UI.Disable();
         inputActions.Player.Move.performed += OnMovePerformed;
         inputActions.Player.Move.canceled += OnMoveCanceled;
         inputActions.Player.Jump.performed += OnJumpPerformed;
@@ -132,7 +133,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
-        inputActions.Disable();
+        inputActions.Player.Disable();
         inputActions.Player.Move.performed -= OnMovePerformed;
         inputActions.Player.Move.canceled -= OnMoveCanceled;
         inputActions.Player.Jump.performed -= OnJumpPerformed;
