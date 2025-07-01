@@ -29,7 +29,10 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        InputManager.Instance.ChangeMap(1);
+        if (SceneManager.GetActiveScene().name == "Main Menu")
+            InputManager.Instance.ChangeMap(1);
+        else
+            InputManager.Instance.ChangeMap(0);
     }
 
     // Update is called once per frame
