@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+[DefaultExecutionOrder(-100)]
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
@@ -45,10 +46,12 @@ public class InputManager : MonoBehaviour
             case 0:
                 inputActions.Player.Enable();
                 inputActions.UI.Disable();
+                Debug.Log("Player map");
                 break;
             case 1:
                 inputActions.Player.Disable();
                 inputActions.UI.Enable();
+                Debug.Log("UI map");
                 break;
             default:
                 inputActions.Player.Disable();

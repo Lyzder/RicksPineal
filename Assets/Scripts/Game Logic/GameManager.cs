@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
+[DefaultExecutionOrder(-99)]
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }

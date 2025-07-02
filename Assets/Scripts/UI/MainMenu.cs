@@ -38,6 +38,7 @@ public class MainMenu : MonoBehaviour
 
     private void OnSubmit(InputAction.CallbackContext ctx)
     {
+        Debug.Log("Submit received");
         GameManager.Instance.StartGame();
     }
 }
