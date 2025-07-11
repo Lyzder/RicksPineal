@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float wallJumpSpeedHorizontal;
     [SerializeField] private float wallJumpSpeedVertical;
     [SerializeField] private Transform wallCheckPoint;
+    [SerializeField] private float wallCheckPointOffset;
     [SerializeField] private float wallCheckDistance;
     [SerializeField] private float wallRegrabCooldown;
     [SerializeField] private float wallJumpControlLockTime;
@@ -198,7 +199,7 @@ public class PlayerController : MonoBehaviour
 
         rb.velocity = newVelocity;
 
-        wallCheckPoint.localPosition = new Vector3(0.5f * moveDirection, 0);
+        wallCheckPoint.localPosition = new Vector3(0.4f * moveDirection + wallCheckPointOffset, 0);
     }
 
     private void Jump()
@@ -438,7 +439,7 @@ public class PlayerController : MonoBehaviour
     {
         moveDirection *= -1;
         FlipSprite();
-        wallCheckPoint.localPosition = new Vector3(0.5f * moveDirection, 0);
+        wallCheckPoint.localPosition = new Vector3(0.4f * moveDirection + wallCheckPointOffset, 0);
     }
 
     private void FlipSprite()
