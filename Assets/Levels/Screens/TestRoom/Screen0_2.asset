@@ -18,5 +18,5 @@ MonoBehaviour:
   leftScreen: {fileID: 11400000, guid: 82c8ec794e8b7444c9acd5bcaa2f56c6, type: 2}
   rightScreen: {fileID: 0}
   cameraPosition: {x: 53.4, y: 18, z: -10}
-  hasRespawn: 0
-  respawnPosition: {x: 0, y: 0}
+  hasRespawn: 1
+  respawnPosition: {x: 45.8, y: 14.71502}

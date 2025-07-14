@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
 
     public event Action OnWinning;
 
+    private Vector2 respawnPoint;
+
     private void Awake()
     {
         if (Instance == null)
@@ -52,5 +54,21 @@ public class GameManager : MonoBehaviour
     {
         OnWinning?.Invoke();
         InputManager.Instance.ChangeMap(1);
+    }
+
+    public void SetRespawnPoint(Vector2 point)
+    {
+        respawnPoint = point;
+    }
+
+    public void RespawnPlayer()
+    {
+        //TODO
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            player.transform.position = respawnPoint;
+            player.GetComponent<PlayerController>().ResetPlayer();
+        }
     }
 }

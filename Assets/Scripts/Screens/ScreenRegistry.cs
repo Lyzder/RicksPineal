@@ -19,10 +19,4 @@ public class ScreenRegistry : MonoBehaviour
             screensDict[screen.gridPosition] = screen;
         }
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

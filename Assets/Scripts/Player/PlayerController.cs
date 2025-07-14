@@ -13,9 +13,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject spriteObject;
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
-    [SerializeField] private float jumpSpeed;
+    [SerializeField] private float initialJumpForce;
+    [SerializeField] private float extraJumpForce;
     [SerializeField] private float bounceSpeed;
     [SerializeField] private LayerMask levelCollisionLayer;
+    [SerializeField] private float maxJumpTime;
+    private float jumpTimer;
     private short moveDirection;
     private Vector2 moveInput;
     [Header("Ground check")]
@@ -62,6 +65,8 @@ public class PlayerController : MonoBehaviour
     private float deadTimer;
     private bool ignoreCollision;
     private float damageFramesTimer;
+    [Header("Power ups")]
+    [SerializeField] private bool hasWallSlide;
     [Header("Effects")]
     [SerializeField] GameObject jumpEffect;
     [SerializeField] GameObject shootEffect;
@@ -76,6 +81,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip noAmmoSfx;
     [SerializeField] private AudioClip reloadSfx;
     [SerializeField] private AudioClip deadSfx;
+    // Input flags
+    private bool isJump;
     // Components
     private Rigidbody2D rb;
     private BoxCollider2D collider2d;
@@ -107,6 +114,7 @@ public class PlayerController : MonoBehaviour
         coyoteTimer = 0;
         jumpQueued = false;
         jumped = false;
+        jumpTimer = 0;
         isWallSliding = false;
         isAlive = true;
         // Initialize Input Actions
@@ -128,6 +136,7 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Move.performed += OnMovePerformed;
         inputActions.Player.Move.canceled += OnMoveCanceled;
         inputActions.Player.Jump.performed += OnJumpPerformed;
+        inputActions.Player.Jump.canceled += OnJumpCanceled;
         inputActions.Player.Attack.performed += OnAttackPerformed;
         //GameManager.Instance.OnWinning += DisableControls;
     }
@@ -138,6 +147,7 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Move.performed -= OnMovePerformed;
         inputActions.Player.Move.canceled -= OnMoveCanceled;
         inputActions.Player.Jump.performed -= OnJumpPerformed;
+        inputActions.Player.Jump.canceled -= OnJumpCanceled;
         inputActions.Player.Attack.performed -= OnAttackPerformed;
         //GameManager.Instance.OnWinning -= DisableControls;
     }
@@ -168,6 +178,7 @@ public class PlayerController : MonoBehaviour
         CheckWall();
         CheckGrounded();
         Move();
+        ExtendJump();
         if (jumpQueued)
         {
             Jump();
@@ -182,6 +193,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 newVelocity = rb.velocity;
 
+        // Damps player movement when jumping off a wall
         float controlPercent = 1f - Mathf.Pow(wallJumpControlTimer / wallJumpControlLockTime, 2f);
 
         float targetVelocityX = moveInput.x * moveSpeed;
@@ -215,13 +227,25 @@ public class PlayerController : MonoBehaviour
         else
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
-            rb.AddForce(new Vector2(0, jumpSpeed), ForceMode2D.Impulse);
+            rb.AddForce(new Vector2(0, initialJumpForce), ForceMode2D.Impulse);
+            jumpTimer = maxJumpTime;
         }
         regrabTimer = wallRegrabCooldown;
         jumpQueued = false;
         jumped = true;
         //Instantiate(jumpEffect, groundCheckLeft.position + jumpEffectOffset, Quaternion.identity);
         //AudioManager.Instance.PlaySFX(jumpSfx);
+    }
+
+    private void ExtendJump()
+    {
+        if (isJump && jumpTimer > 0)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, extraJumpForce);
+            //jumpTimer -= Time.fixedDeltaTime;
+        }
+        else
+            jumpTimer = 0;
     }
 
     private void CheckGrounded()
@@ -231,10 +255,11 @@ public class PlayerController : MonoBehaviour
         bool hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
         isGrounded = hitLeft || hitRight || hitCenter;
 
-        if (isGrounded)
+        if (isGrounded && rb.velocity.y <= 0)
         {
             coyoteTimer = 0;
             jumped = false;
+            jumpTimer = 0;
             //stompHitbox.enabled = false;
             //collider2d.size = new Vector2(0.8f, 0.89f);
         }
@@ -265,6 +290,7 @@ public class PlayerController : MonoBehaviour
         {
             float slideSpeed = (moveInput.y < 0) ? fastSlideSpeed : slowSlideSpeed;
             rb.velocity = new Vector2(rb.velocity.x, -slideSpeed);
+            jumpTimer = 0;
         }
     }
 
@@ -324,12 +350,18 @@ public class PlayerController : MonoBehaviour
 
     private void OnJumpPerformed(InputAction.CallbackContext ctx)
     {
+        isJump = true;
         if (playerState == States.Damage)
             return;
         if (isGrounded || isWallSliding)
         { //|| (coyoteTimer < coyoteTime && !jumped) 
             jumpQueued = true;
         }
+    }
+
+    private void OnJumpCanceled(InputAction.CallbackContext ctx)
+    {
+        isJump = false;
     }
 
     private void OnAttackPerformed(InputAction.CallbackContext ctx)
@@ -545,6 +577,24 @@ public class PlayerController : MonoBehaviour
         float horizontalRecoil = damageRecoilHorizontal * moveDirection * -1;
         rb.velocity = Vector2.zero;
         rb.AddForce(new Vector2(horizontalRecoil * mult, damageRecoilVertical * mult), ForceMode2D.Impulse);
+    }
+
+    public void InstaKill()
+    {
+        //TODO
+        GameManager.Instance.RespawnPlayer();
+    }
+
+    public void ResetPlayer()
+    {
+        rb.velocity = Vector2.zero;
+        ResetAnimator();
+    }
+
+    private void ResetAnimator()
+    {
+        animator.Rebind();
+        animator.Update(0f);
     }
 
     //private void AttackCooldown()

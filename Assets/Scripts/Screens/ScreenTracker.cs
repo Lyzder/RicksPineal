@@ -39,6 +39,8 @@ public class ScreenTracker : MonoBehaviour
             {
                 ScreenTransitionManager.Instance.MoveToScreen(nextScreen);
                 currentScreen = nextScreen;
+                if (nextScreen.hasRespawn)
+                    GameManager.Instance.SetRespawnPoint(nextScreen.respawnPosition);
             }
         }
     }
