@@ -242,7 +242,7 @@ public class PlayerController : MonoBehaviour
         if (isJump && jumpTimer > 0)
         {
             rb.velocity = new Vector2(rb.velocity.x, extraJumpForce);
-            //jumpTimer -= Time.fixedDeltaTime;
+            jumpTimer -= Time.fixedDeltaTime;
         }
         else
             jumpTimer = 0;
@@ -696,7 +696,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isWallSliding)
         {
-            spriteObject.transform.localPosition = new Vector3(0.25f * moveDirection, 0);
+            spriteObject.transform.localPosition = new Vector3(0.15f * moveDirection, 0);
         }
         else
         {
