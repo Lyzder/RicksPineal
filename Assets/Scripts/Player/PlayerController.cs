@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     private float jumpTimer;
     private short moveDirection;
     private Vector2 moveInput;
+    private GameObject currentPlatform;
     [Header("Ground check")]
     [SerializeField] private Transform groundCheckLeft;
     [SerializeField] private Transform groundCheckCenter;
@@ -110,6 +111,7 @@ public class PlayerController : MonoBehaviour
         spriteRenderer = spriteObject.GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         collider2d = GetComponent<BoxCollider2D>();
+        currentPlatform = null;
         moveDirection = 1;
         coyoteTimer = 0;
         jumpQueued = false;
@@ -250,10 +252,22 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGrounded()
     {
-        bool hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
-        bool hitCenter = Physics2D.Raycast(groundCheckCenter.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
-        bool hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
-        isGrounded = hitLeft || hitRight || hitCenter;
+        RaycastHit2D hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        RaycastHit2D hitCenter = Physics2D.Raycast(groundCheckCenter.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        RaycastHit2D hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+
+        isGrounded = hitLeft.collider != null || hitCenter.collider != null || hitRight.collider != null;
+
+        RaycastHit2D hit = hitCenter.collider != null ? hitCenter : hitLeft.collider != null ? hitLeft : hitRight;
+
+        if (isGrounded && hit.collider != null && hit.collider.CompareTag("MovingPlatform"))
+        {
+            currentPlatform = hit.collider.gameObject;
+        }
+        else
+        {
+            currentPlatform = null;
+        }
 
         if (isGrounded && rb.velocity.y <= 0)
         {
@@ -272,6 +286,8 @@ public class PlayerController : MonoBehaviour
 
     private void CheckWall()
     {
+        if (!hasWallSlide)
+            return;
         if (regrabTimer > 0)
             return;
 
@@ -696,11 +712,21 @@ public class PlayerController : MonoBehaviour
     {
         if (isWallSliding)
         {
-            spriteObject.transform.localPosition = new Vector3(0.15f * moveDirection, 0);
+            if (moveDirection > 0)
+                spriteObject.transform.localPosition = new Vector3(0.12f * moveDirection, 0);
+            else if (moveDirection < 0)
+                spriteObject.transform.localPosition = new Vector3(0.18f * moveDirection, 0);
         }
         else
         {
             spriteObject.transform.localPosition = Vector3.zero;
         }
+    }
+
+    // GRANT POWER UPS METHODS
+
+    public void GetWallSlide()
+    {
+        hasWallSlide = true;
     }
 }

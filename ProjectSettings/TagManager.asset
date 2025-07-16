@@ -7,6 +7,7 @@ TagManager:
   - Enemy
   - LevelScreens
   - CameraFocus
+  - MovingPlatform
   layers:
   - Default
   - TransparentFX
