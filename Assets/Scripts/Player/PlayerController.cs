@@ -32,6 +32,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private bool jumpQueued;
     private bool jumped;
+    private RaycastHit2D hitLeft, hitCenter, hitRight;
     [Header("Wall Slide")]
     [SerializeField] private float slowSlideSpeed;
     [SerializeField] private float fastSlideSpeed;
@@ -46,6 +47,7 @@ public class PlayerController : MonoBehaviour
     private bool isTouchingWall;
     private bool isWallSliding;
     private float regrabTimer;
+    private RaycastHit2D wallCast;
     [Header("Sats")]
     [SerializeField] private short hp;
     [SerializeField] private short maxHp;
@@ -179,6 +181,7 @@ public class PlayerController : MonoBehaviour
             return;
         CheckWall();
         CheckGrounded();
+        CheckPlatform();
         Move();
         ExtendJump();
         if (jumpQueued)
@@ -209,6 +212,16 @@ public class PlayerController : MonoBehaviour
         {
             // Full control
             newVelocity.x = targetVelocityX;
+        }
+
+        if (currentPlatform != null)
+        {
+            MovingPlatform platform = currentPlatform.GetComponent<MovingPlatform>();
+
+            if (platform != null)
+            {
+                newVelocity += platform.PlatformVelocity;
+            }
         }
 
         rb.velocity = newVelocity;
@@ -252,9 +265,9 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGrounded()
     {
-        RaycastHit2D hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
-        RaycastHit2D hitCenter = Physics2D.Raycast(groundCheckCenter.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
-        RaycastHit2D hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        hitCenter = Physics2D.Raycast(groundCheckCenter.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
+        hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
 
         isGrounded = hitLeft.collider != null || hitCenter.collider != null || hitRight.collider != null;
 
@@ -292,7 +305,17 @@ public class PlayerController : MonoBehaviour
             return;
 
         Vector2 direction = moveDirection > 0 ? Vector2.right : Vector2.left;
-        isTouchingWall = Physics2D.Raycast(wallCheckPoint.position, direction, wallCheckDistance, levelCollisionLayer);
+        wallCast = Physics2D.Raycast(wallCheckPoint.position, direction, wallCheckDistance, levelCollisionLayer);
+        isTouchingWall = wallCast.collider != null;
+
+        if (wallCast.collider != null && wallCast.collider.CompareTag("MovingPlatform"))
+        {
+            currentPlatform = wallCast.collider.gameObject;
+        }
+        else
+        {
+            currentPlatform = null;
+        }
 
         // Wall slide only when airborne, moving into wall, and touching wall
         // Player doesn't need to hold the direction to stay sliding
@@ -308,6 +331,27 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, -slideSpeed);
             jumpTimer = 0;
         }
+    }
+
+    private void CheckPlatform()
+    {
+        RaycastHit2D hit;
+
+        if (wallCast.collider != null && wallCast.collider.CompareTag("MovingPlatform"))
+        {
+            currentPlatform = wallCast.collider.gameObject;
+            return;
+        }
+
+        hit = hitCenter.collider != null ? hitCenter : hitLeft.collider != null ? hitLeft : hitRight;
+
+        if (isGrounded && hit.collider != null && hit.collider.CompareTag("MovingPlatform"))
+        {
+            currentPlatform = hit.collider.gameObject;
+            return;
+        }
+
+        currentPlatform = null;
     }
 
     // END MOVEMENT METHODS
@@ -501,8 +545,16 @@ public class PlayerController : MonoBehaviour
     private void UpdateAnimator()
     {
         animator.SetFloat("HorizontalSpeed", math.abs(rb.velocity.x));
+        animator.SetFloat("HorizontalInput", math.abs(moveInput.x));
         animator.SetFloat("VerticalSpeed", rb.velocity.y);
         animator.SetBool("IsWallSliding", isWallSliding);
+        animator.SetBool("IsGrounded", isGrounded);
+        if (jumped)
+        {
+            animator.ResetTrigger("Jumped");
+            animator.SetTrigger("Jumped");
+            jumped = false;
+        }
     }
 
     private void UpdateDirection()

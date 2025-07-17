@@ -10,8 +10,9 @@ public class MovingPlatform : MonoBehaviour
     public Vector2[] waypoints;
     private float timer;
     private short currentPoint;
-    private bool direction;
+    private bool flow;
     public Vector2 PlatformVelocity { get; private set; }
+    private Vector2 lastPosition, targetPosition;
 
     // Components
     private Rigidbody2D rb;
@@ -22,7 +23,7 @@ public class MovingPlatform : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         timer = 0;
         currentPoint = 0;
-        direction = true;
+        flow = true;
     }
 
     // Update is called once per frame
@@ -41,15 +42,17 @@ public class MovingPlatform : MonoBehaviour
         {
             MovePlatform();
         }
+        UpdateSpeed();
     }
 
     private void MovePlatform()
     {
         Vector2 target = waypoints[currentPoint];
-        Vector2 newPosition = Vector2.MoveTowards(rb.position, target, moveSpeed * Time.fixedDeltaTime);
-        rb.MovePosition(newPosition);
+        targetPosition = Vector2.MoveTowards(rb.position, target, moveSpeed * Time.fixedDeltaTime);
+        lastPosition = rb.position;
+        rb.MovePosition(targetPosition);
 
-        if (newPosition == target)
+        if (targetPosition == target)
         {
             timer = waitTime;
         }
@@ -58,6 +61,7 @@ public class MovingPlatform : MonoBehaviour
     private void Wait()
     {
         timer -= Time.deltaTime;
+        lastPosition = rb.position;
         if (timer <= 0)
             SetDestination();
     }
@@ -69,14 +73,14 @@ public class MovingPlatform : MonoBehaviour
 
         if (currentPoint == 0)
         {
-            direction = true;
+            flow = true;
         }
         else if (currentPoint == waypoints.Length - 1)
         {
-            direction = false;
+            flow = false;
         }
 
-        if (direction)
+        if (flow)
         {
             currentPoint += 1;
         }
@@ -84,5 +88,10 @@ public class MovingPlatform : MonoBehaviour
         {
             currentPoint -= 1;
         }
+    }
+
+    private void UpdateSpeed()
+    {
+        PlatformVelocity = (targetPosition - lastPosition) / Time.fixedDeltaTime;
     }
 }
