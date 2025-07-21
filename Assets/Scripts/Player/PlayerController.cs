@@ -220,7 +220,15 @@ public class PlayerController : MonoBehaviour
 
             if (platform != null)
             {
-                newVelocity += platform.PlatformVelocity;
+                newVelocity.x += platform.PlatformVelocity.x;
+                if (platform.PlatformVelocity.y > 0)
+                {
+                    newVelocity.y = platform.PlatformVelocity.y;
+                }
+                else
+                {
+                    newVelocity.y += platform.PlatformVelocity.y;
+                }
             }
         }
 

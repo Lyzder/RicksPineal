@@ -51,9 +51,12 @@ TagManager:
   - name: Platforms Background
     uniqueID: 2759517187
     locked: 0
-  - name: Platforms Foreground
-    uniqueID: 2724599093
+  - name: Traps
+    uniqueID: 3475284185
     locked: 0
   - name: Entities
     uniqueID: 1668096557
+    locked: 0
+  - name: Platforms Foreground
+    uniqueID: 2724599093
     locked: 0

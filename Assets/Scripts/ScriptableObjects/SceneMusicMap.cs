@@ -5,17 +5,17 @@ using UnityEngine;
 public class SceneMusicMap : ScriptableObject
 {
 
-    public List<SceneMusicEntry> musicEntries = new List<SceneMusicEntry>();
+    public List<SceneMusicEntry> musicEntries = new();
 
     public string GetMusicAddressForScene(string sceneName)
     {
         var entry = musicEntries.Find(e => e.sceneName == sceneName);
-        return entry != null ? entry.musicAddress : null;
+        return entry?.musicAddress;
     }
 
     public SceneMusicEntry GetMusicEntryForScene(string sceneName)
     {
         SceneMusicEntry entry = musicEntries.Find(e => e.sceneName == sceneName);
-        return entry != null ? entry : null;
+        return entry ?? null;
     }
 }
