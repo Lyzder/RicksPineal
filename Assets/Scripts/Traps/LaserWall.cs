@@ -85,6 +85,7 @@ public class LaserWall : MonoBehaviour
             switch (orientation)
             {
                 case Orientation.Left:
+                    segment.transform.Rotate(0, 0, -90, Space.Self);
                     currentPosition.x -= segmentSize.x;
                     if (i == 0)
                         break;
@@ -94,6 +95,7 @@ public class LaserWall : MonoBehaviour
                         colliderSize.x += segmentSize.x;
                     break;
                 case Orientation.Right:
+                    segment.transform.Rotate(0, 0, 90, Space.Self);
                     currentPosition.x += segmentSize.x;
                     if (i == 0)
                         break;
@@ -103,6 +105,7 @@ public class LaserWall : MonoBehaviour
                         colliderSize.x += segmentSize.x;
                     break;
                 case Orientation.Top:
+                    segment.transform.Rotate(0, 0, 180, Space.Self);
                     currentPosition.y += segmentSize.y;
                     if (i == 0)
                         break;

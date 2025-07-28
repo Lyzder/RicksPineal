@@ -68,6 +68,7 @@ public class PlayerController : MonoBehaviour
     private float deadTimer;
     private bool ignoreCollision;
     private float damageFramesTimer;
+    private Interactable interactObject;
     [Header("Power ups")]
     [SerializeField] private bool hasWallSlide;
     [Header("Effects")]
@@ -142,6 +143,7 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Jump.performed += OnJumpPerformed;
         inputActions.Player.Jump.canceled += OnJumpCanceled;
         inputActions.Player.Attack.performed += OnAttackPerformed;
+        inputActions.Player.Interact.performed += OnInteractPerformed;
         //GameManager.Instance.OnWinning += DisableControls;
     }
 
@@ -153,6 +155,7 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Jump.performed -= OnJumpPerformed;
         inputActions.Player.Jump.canceled -= OnJumpCanceled;
         inputActions.Player.Attack.performed -= OnAttackPerformed;
+        inputActions.Player.Interact.performed -= OnInteractPerformed;
         //GameManager.Instance.OnWinning -= DisableControls;
     }
 
@@ -444,6 +447,16 @@ public class PlayerController : MonoBehaviour
             return;
         }
         //Shoot();
+    }
+
+    private void OnInteractPerformed(InputAction.CallbackContext ctx)
+    {
+        if (playerState == States.Damage)
+            return;
+        if (interactObject == null)
+            return;
+
+        interactObject.PlayAction(this);
     }
 
     // END INPUT READING METHODS
@@ -788,5 +801,20 @@ public class PlayerController : MonoBehaviour
     public void GetWallSlide()
     {
         hasWallSlide = true;
+    }
+
+    public void SetInteractable(Interactable interactable)
+    {
+        interactObject = interactable;
+    }
+
+    public void RemoveInteractable()
+    {
+        interactObject = null;
+    }
+
+    private void ShowInteract()
+    {
+        //TODO
     }
 }
