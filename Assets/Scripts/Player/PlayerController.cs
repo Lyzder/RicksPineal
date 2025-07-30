@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -11,6 +12,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Sprite")]
     [SerializeField] private GameObject spriteObject;
+    [SerializeField] private GameObject overheadObject;
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float initialJumpForce;
@@ -175,6 +177,7 @@ public class PlayerController : MonoBehaviour
             WallJumpSpeedTimer();
         UpdateAnimator();
         UpdateDirection();
+        ShowInteract();
         AdjustSpritePosition();
     }
 
@@ -816,5 +819,13 @@ public class PlayerController : MonoBehaviour
     private void ShowInteract()
     {
         //TODO
+        if (interactObject == null)
+        {
+            overheadObject.GetComponent<SpriteRenderer>().enabled = false;
+        }
+        else
+        {
+            overheadObject.GetComponent<SpriteRenderer>().enabled = true;
+        }
     }
 }

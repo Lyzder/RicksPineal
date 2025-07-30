@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class Portal : Interactable
+public class Button : Interactable
 {
-    [SerializeField] private Transform coordinates;
+    public UnityEvent onTriggerActivated;
+    [SerializeField] private AudioClip clickSfx;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -19,6 +22,12 @@ public class Portal : Interactable
 
     public override void PlayAction(PlayerController player)
     {
-        player.transform.position = coordinates.position;
+        AudioManager.Instance.PlaySFX(clickSfx);
+        ActivateTrigger();
+    }
+
+    protected void ActivateTrigger()
+    {
+        onTriggerActivated?.Invoke();
     }
 }

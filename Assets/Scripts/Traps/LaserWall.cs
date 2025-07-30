@@ -26,6 +26,7 @@ public class LaserWall : MonoBehaviour
 
     public Orientation orientation;
     [Header("Timing")]
+    public bool cycleEnabled;
     public float intervalTime;
     public float startTime;
     public bool isActive;
@@ -144,10 +145,13 @@ public class LaserWall : MonoBehaviour
                 boxCollider.offset = new Vector2(boxCollider.offset.x, boxCollider.offset.y - (colliderSize.y / 2) + (segmentStartSize. y / 2));
                 break;
         }
+        ActivateSegments(isActive);
     }
 
     private void RunTimer()
     {
+        if (!cycleEnabled) return;
+
         timer -= Time.deltaTime;
         if (timer <= 0)
         {
@@ -266,5 +270,27 @@ public class LaserWall : MonoBehaviour
                     break;
             }
         }
+    }
+
+    public void EnableCycle(bool enable)
+    {
+        cycleEnabled = enable;
+    }
+
+    public void ToggleCycle()
+    {
+        cycleEnabled = !cycleEnabled;
+    }
+
+    public void EnableWall(bool enable)
+    {
+        isActive = enable;
+        ActivateSegments(enable);
+    }
+
+    public void ToggleWall()
+    {
+        isActive = !isActive;
+        ActivateSegments(isActive);
     }
 }
