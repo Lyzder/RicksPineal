@@ -222,7 +222,7 @@ public class PlayerController : MonoBehaviour
 
         if (currentPlatform != null)
         {
-            MovingPlatform platform = currentPlatform.GetComponent<MovingPlatform>();
+            DynamicPlatform platform = currentPlatform.GetComponent<DynamicPlatform>();
 
             if (platform != null)
             {
@@ -287,7 +287,7 @@ public class PlayerController : MonoBehaviour
 
         RaycastHit2D hit = hitCenter.collider != null ? hitCenter : hitLeft.collider != null ? hitLeft : hitRight;
 
-        if (isGrounded && hit.collider != null && hit.collider.CompareTag("MovingPlatform"))
+        if (isGrounded && hit.collider != null && hit.collider.CompareTag("DynamicPlatform"))
         {
             currentPlatform = hit.collider.gameObject;
         }
@@ -322,7 +322,7 @@ public class PlayerController : MonoBehaviour
         wallCast = Physics2D.Raycast(wallCheckPoint.position, direction, wallCheckDistance, levelCollisionLayer);
         isTouchingWall = wallCast.collider != null;
 
-        if (wallCast.collider != null && wallCast.collider.CompareTag("MovingPlatform"))
+        if (wallCast.collider != null && wallCast.collider.CompareTag("DynamicPlatform"))
         {
             currentPlatform = wallCast.collider.gameObject;
         }
@@ -351,7 +351,7 @@ public class PlayerController : MonoBehaviour
     {
         RaycastHit2D hit;
 
-        if (wallCast.collider != null && wallCast.collider.CompareTag("MovingPlatform"))
+        if (wallCast.collider != null && wallCast.collider.CompareTag("DynamicPlatform"))
         {
             currentPlatform = wallCast.collider.gameObject;
             return;
@@ -359,7 +359,7 @@ public class PlayerController : MonoBehaviour
 
         hit = hitCenter.collider != null ? hitCenter : hitLeft.collider != null ? hitLeft : hitRight;
 
-        if (isGrounded && hit.collider != null && hit.collider.CompareTag("MovingPlatform"))
+        if (isGrounded && hit.collider != null && hit.collider.CompareTag("DynamicPlatform"))
         {
             currentPlatform = hit.collider.gameObject;
             return;

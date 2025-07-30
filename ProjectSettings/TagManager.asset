@@ -8,6 +8,7 @@ TagManager:
   - LevelScreens
   - CameraFocus
   - MovingPlatform
+  - DynamicPlatform
   layers:
   - Default
   - TransparentFX

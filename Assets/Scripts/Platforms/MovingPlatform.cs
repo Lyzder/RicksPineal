@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovingPlatform : MonoBehaviour
+public class MovingPlatform : DynamicPlatform
 {
     [Header("Movement")]
     public float moveSpeed;
@@ -11,7 +11,6 @@ public class MovingPlatform : MonoBehaviour
     private float timer;
     private short currentPoint;
     private bool flow;
-    public Vector2 PlatformVelocity { get; private set; }
     private Vector2 lastPosition, targetPosition;
 
     // Components
@@ -32,7 +31,7 @@ public class MovingPlatform : MonoBehaviour
         
     }
 
-    private void FixedUpdate()
+    protected override void FixedUpdate()
     {
         if (timer > 0)
         {
@@ -42,7 +41,7 @@ public class MovingPlatform : MonoBehaviour
         {
             MovePlatform();
         }
-        UpdateSpeed();
+        base.FixedUpdate();
     }
 
     private void MovePlatform()
@@ -90,7 +89,7 @@ public class MovingPlatform : MonoBehaviour
         }
     }
 
-    private void UpdateSpeed()
+    protected override void UpdateSpeed()
     {
         PlatformVelocity = (targetPosition - lastPosition) / Time.fixedDeltaTime;
     }
