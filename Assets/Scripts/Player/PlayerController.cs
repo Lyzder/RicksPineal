@@ -25,12 +25,14 @@ public class PlayerController : MonoBehaviour
     private Vector2 moveInput;
     private GameObject currentPlatform;
     [Header("Ground check")]
+    [SerializeField] private Transform groundCheckPivot;
     [SerializeField] private Transform groundCheckLeft;
     [SerializeField] private Transform groundCheckCenter;
     [SerializeField] private Transform groundCheckRight;
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private float coyoteTime;
     private float coyoteTimer;
+    private float groundedCheckTimer;
     private bool isGrounded;
     private bool jumpQueued;
     private bool jumped;
@@ -42,10 +44,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float wallJumpSpeedVertical;
     [SerializeField] private Transform wallCheckPoint;
     [SerializeField] private float wallCheckPointOffset;
+    [SerializeField] private float wallCheckSlideOffset;
     [SerializeField] private float wallCheckDistance;
     [SerializeField] private float wallRegrabCooldown;
     [SerializeField] private float wallJumpControlLockTime;
     private float wallJumpControlTimer = 0f;
+    private Vector2 wallCheckInitialPosition;
     private bool isTouchingWall;
     private bool isWallSliding;
     private float regrabTimer;
@@ -91,10 +95,12 @@ public class PlayerController : MonoBehaviour
     private bool isJump;
     // Components
     private Rigidbody2D rb;
-    private BoxCollider2D collider2d;
+    private BoxCollider2D[] colBoxes;
+    private CapsuleCollider2D[] colCapsules;
     private InputSystem_Actions inputActions;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    private short colliderMode;
     // Player State
     public bool isAlive { get; private set; }
     public enum States : ushort
@@ -115,15 +121,18 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = spriteObject.GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        collider2d = GetComponent<BoxCollider2D>();
+        colCapsules = GetComponents<CapsuleCollider2D>();
+        colBoxes = GetComponents<BoxCollider2D>();
         currentPlatform = null;
         moveDirection = 1;
         coyoteTimer = 0;
         jumpQueued = false;
         jumped = false;
         jumpTimer = 0;
+        wallCheckInitialPosition = wallCheckPoint.localPosition;
         isWallSliding = false;
         isAlive = true;
+        colliderMode = 0;
         // Initialize Input Actions
         inputActions = InputManager.Instance.inputActions;
     }
@@ -178,17 +187,20 @@ public class PlayerController : MonoBehaviour
         UpdateAnimator();
         UpdateDirection();
         ShowInteract();
-        AdjustSpritePosition();
+        AdjustColliders();
     }
 
     private void FixedUpdate()
     {
         if (!isAlive)
             return;
+        if (groundedCheckTimer > 0)
+            GroundedTimer();
         CheckWall();
         CheckGrounded();
         CheckPlatform();
         Move();
+        AdjustWallCheckPosition();
         ExtendJump();
         if (jumpQueued)
         {
@@ -239,8 +251,6 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.velocity = newVelocity;
-
-        wallCheckPoint.localPosition = new Vector3(0.4f * moveDirection + wallCheckPointOffset, 0);
     }
 
     private void Jump()
@@ -260,6 +270,8 @@ public class PlayerController : MonoBehaviour
             jumpTimer = maxJumpTime;
         }
         regrabTimer = wallRegrabCooldown;
+        groundedCheckTimer = 0.5f;
+        isGrounded = false;
         jumpQueued = false;
         jumped = true;
         //Instantiate(jumpEffect, groundCheckLeft.position + jumpEffectOffset, Quaternion.identity);
@@ -279,6 +291,9 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGrounded()
     {
+        if (groundedCheckTimer > 0)
+            return;
+
         hitLeft = Physics2D.Raycast(groundCheckLeft.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
         hitCenter = Physics2D.Raycast(groundCheckCenter.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
         hitRight = Physics2D.Raycast(groundCheckRight.position, Vector2.down, groundCheckDistance, levelCollisionLayer);
@@ -368,6 +383,99 @@ public class PlayerController : MonoBehaviour
         currentPlatform = null;
     }
 
+    public void ChangeColliderMode(int mode)
+    {
+        colliderMode = (short)mode;
+    }
+
+    private void AdjustColliders()
+    {
+        switch (colliderMode)
+        {
+            // Grounded
+            case 0:
+                colCapsules[0].enabled = false;
+                colBoxes[0].enabled = true;
+                colBoxes[1].enabled = true;
+                // Feet collider
+                colBoxes[0].offset = new(0, -0.37f);
+                colBoxes[0].size = new(0.38f, 0.13f);
+                colBoxes[0].edgeRadius = 0.05f;
+                // Body collider
+                colBoxes[1].offset = new(moveDirection >= 0 ? -0.03f : 0.03f, 0.05f);
+                colBoxes[1].size = new(0.55f, 0.6f);
+                colBoxes[1].edgeRadius = 0.1f;
+                groundCheckPivot.localPosition = new(0, -0.5f, 0);
+                break;
+            // Jumping
+            case 1:
+                colCapsules[0].enabled = false;
+                colBoxes[0].enabled = true;
+                colBoxes[1].enabled = true;
+                // Feet collider
+                colBoxes[0].offset = new(0, -0.3f);
+                colBoxes[0].size = new(0.38f, 0.13f);
+                colBoxes[0].edgeRadius = 0.05f;
+                // Body collider
+                colBoxes[1].offset = new(moveDirection >= 0 ? -0.03f : 0.03f, 0.05f);
+                colBoxes[1].size = new(0.55f, 0.6f);
+                colBoxes[1].edgeRadius = 0.1f;
+                groundCheckPivot.localPosition = new(0, -0.42f, 0);
+                break;
+            // Falling
+            case 2:
+                colCapsules[0].enabled = false;
+                colBoxes[0].enabled = true;
+                colBoxes[1].enabled = true;
+                // Feet collider
+                colBoxes[0].offset = new(0, -0.37f);
+                colBoxes[0].size = new(0.38f, 0.13f);
+                colBoxes[0].edgeRadius = 0.05f;
+                // Body collider
+                colBoxes[1].offset = new(moveDirection >= 0 ? -0.03f : 0.03f, -0.05f);
+                colBoxes[1].size = new(0.35f, 0.47f);
+                colBoxes[1].edgeRadius = 0.2f;
+                groundCheckPivot.localPosition = new(0, -0.5f, 0);
+                break;
+            // Wall attached
+            case 3:
+                colCapsules[0].enabled = false;
+                colBoxes[0].enabled = true;
+                colBoxes[1].enabled = true;
+                // Feet collider
+                colBoxes[0].offset = new(moveDirection >= 0 ? 0.19f : -0.19f, -0.375f);
+                colBoxes[0].size = new(0.38f, 0.13f);
+                colBoxes[0].edgeRadius = 0.05f;
+                // Body collider
+                colBoxes[1].offset = new(moveDirection >= 0 ? 0.15f : -0.15f, -0.05f);
+                colBoxes[1].size = new(0.4f, 0.6f);
+                colBoxes[1].edgeRadius = 0.1f;
+                groundCheckPivot.localPosition = new(moveDirection >= 0 ? 0.19f : -0.19f, - 0.5f, 0);
+                break;
+            default:
+                colCapsules[0].enabled = false;
+                colBoxes[0].enabled = true;
+                colBoxes[1].enabled = true;
+                // Feet collider
+                colBoxes[0].offset = new(0, -0.37f);
+                colBoxes[0].size = new(0.38f, 0.13f);
+                colBoxes[0].edgeRadius = 0.05f;
+                // Body collider
+                colBoxes[1].offset = new(moveDirection >= 0 ? -0.03f : 0.03f, 0.05f);
+                colBoxes[1].size = new(0.55f, 0.6f);
+                colBoxes[1].edgeRadius = 0.1f;
+                groundCheckPivot.localPosition = new(0, -0.5f, 0);
+                break;
+        }
+    }
+
+    private void AdjustWallCheckPosition()
+    {
+        if (isWallSliding)
+        { Debug.Log(""); }
+        wallCheckPoint.localPosition = new Vector3((wallCheckInitialPosition.x * moveDirection) + (isWallSliding ? wallCheckSlideOffset * moveDirection : 0) + wallCheckPointOffset, wallCheckInitialPosition.y);
+    }
+
     // END MOVEMENT METHODS
 
     //private void Shoot()
@@ -405,6 +513,9 @@ public class PlayerController : MonoBehaviour
         if (playerState == States.Damage)
             return;
         moveInput = ctx.ReadValue<Vector2>();
+
+        if (interactObject != null && interactObject.GetInteractType() == 1 && moveInput.y > 0)
+            interactObject.PlayAction(this);
         //if (moveInput.x > 0)
         //{
         //    moveDirection = 1;
@@ -459,7 +570,8 @@ public class PlayerController : MonoBehaviour
         if (interactObject == null)
             return;
 
-        interactObject.PlayAction(this);
+        if (interactObject.GetInteractType() == 0)
+            interactObject.PlayAction(this);
     }
 
     // END INPUT READING METHODS
@@ -770,6 +882,12 @@ public class PlayerController : MonoBehaviour
         inputActions.Disable();
     }
 
+    private void GroundedTimer()
+    {
+        if (groundedCheckTimer > 0)
+            groundedCheckTimer -= Time.fixedDeltaTime;
+    }
+
     private void WallRegrabTimer()
     {
         if (regrabTimer > 0)
@@ -791,7 +909,7 @@ public class PlayerController : MonoBehaviour
             if (moveDirection > 0)
                 spriteObject.transform.localPosition = new Vector3(0.12f * moveDirection, 0);
             else if (moveDirection < 0)
-                spriteObject.transform.localPosition = new Vector3(0.18f * moveDirection, 0);
+                spriteObject.transform.localPosition = new Vector3(0.12f * moveDirection, 0);
         }
         else
         {

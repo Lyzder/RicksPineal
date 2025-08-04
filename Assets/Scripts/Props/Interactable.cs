@@ -4,6 +4,13 @@ using UnityEngine;
 
 public abstract class Interactable : MonoBehaviour
 {
+    public enum InteractType : short
+    {
+        BUTTON = 0,
+        UP = 1
+    }
+    [SerializeField] private InteractType type;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +37,11 @@ public abstract class Interactable : MonoBehaviour
         {
             collision.gameObject.GetComponent<PlayerController>().RemoveInteractable();
         }
+    }
+
+    public short GetInteractType()
+    {
+        return (short)type;
     }
 
     public abstract void PlayAction(PlayerController player);
