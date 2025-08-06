@@ -187,7 +187,7 @@ public class PlayerController : MonoBehaviour
         UpdateAnimator();
         UpdateDirection();
         ShowInteract();
-        AdjustColliders();
+        //AdjustColliders();
     }
 
     private void FixedUpdate()
@@ -248,6 +248,11 @@ public class PlayerController : MonoBehaviour
                     newVelocity.y += platform.PlatformVelocity.y;
                 }
             }
+        }
+        else
+        {
+            if (newVelocity.y < 0 && isGrounded)
+                newVelocity.y = 0;
         }
 
         rb.velocity = newVelocity;
@@ -471,8 +476,6 @@ public class PlayerController : MonoBehaviour
 
     private void AdjustWallCheckPosition()
     {
-        if (isWallSliding)
-        { Debug.Log(""); }
         wallCheckPoint.localPosition = new Vector3((wallCheckInitialPosition.x * moveDirection) + (isWallSliding ? wallCheckSlideOffset * moveDirection : 0) + wallCheckPointOffset, wallCheckInitialPosition.y);
     }
 
