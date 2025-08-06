@@ -61,3 +61,6 @@ TagManager:
   - name: Platforms Foreground
     uniqueID: 2724599093
     locked: 0
+  - name: World Text
+    uniqueID: 764268365
+    locked: 0
