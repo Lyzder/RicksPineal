@@ -192,8 +192,6 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!isAlive)
-            return;
         if (groundedCheckTimer > 0)
             GroundedTimer();
         CheckWall();
@@ -513,7 +511,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
-        if (playerState == States.Damage)
+        if (!isAlive || playerState == States.Damage)
             return;
         moveInput = ctx.ReadValue<Vector2>();
 
@@ -538,9 +536,9 @@ public class PlayerController : MonoBehaviour
 
     private void OnJumpPerformed(InputAction.CallbackContext ctx)
     {
-        isJump = true;
-        if (playerState == States.Damage)
+        if (!isAlive || playerState == States.Damage)
             return;
+        isJump = true;
         if (isGrounded || isWallSliding)
         { //|| (coyoteTimer < coyoteTime && !jumped) 
             jumpQueued = true;
@@ -554,7 +552,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnAttackPerformed(InputAction.CallbackContext ctx)
     {
-        if (playerState == States.Damage)
+        if (!isAlive || playerState == States.Damage)
             return;
         if (shotCdTimer > 0)
             return;
@@ -568,7 +566,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
-        if (playerState == States.Damage)
+        if (!isAlive || playerState == States.Damage)
             return;
         if (interactObject == null)
             return;
@@ -789,11 +787,19 @@ public class PlayerController : MonoBehaviour
     public void InstaKill()
     {
         //TODO
+        if (!isAlive)
+            return;
+        isAlive = false;
+        spriteRenderer.enabled = false;
+        moveInput = Vector3.zero;
+        isJump = false;
         GameManager.Instance.RespawnPlayer();
     }
 
     public void ResetPlayer()
     {
+        isAlive = true;
+        spriteRenderer.enabled = true;
         rb.velocity = Vector2.zero;
         ResetAnimator();
     }
