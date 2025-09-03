@@ -57,19 +57,12 @@ public class PlayerController : MonoBehaviour
     [Header("Sats")]
     [SerializeField] private short hp;
     [SerializeField] private short maxHp;
-    public short ammo;
-    [Header("Shooting")]
-    [SerializeField] GameObject bulletPrefab;
-    public Vector3 bulletSpawnOffset;
-    [SerializeField] private float shotCooldown;
-    private float shotCdTimer;
     [Header("Interactions")]
     [SerializeField] private float damageFrames;
     [SerializeField] private float iFrames;
     [SerializeField] private bool invincible;
     [SerializeField] private float damageRecoilHorizontal;
     [SerializeField] private float damageRecoilVertical;
-    [SerializeField] private BoxCollider2D stompHitbox;
     [SerializeField] private float deadTime;
     private float deadTimer;
     private bool ignoreCollision;
@@ -79,17 +72,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool hasWallSlide;
     [Header("Effects")]
     [SerializeField] GameObject jumpEffect;
-    [SerializeField] GameObject shootEffect;
     [SerializeField] GameObject pickupEffect;
     public Vector3 jumpEffectOffset;
-    public Vector3 shootEffectOffset;
     [Header("Sound Effects")]
     [SerializeField] private AudioClip jumpSfx;
+    [SerializeField] private AudioClip landingSfx;
+    [SerializeField] private AudioClip slidingSfx;
     [SerializeField] private AudioClip stompSfx;
-    [SerializeField] private AudioClip shootSfx;
-    [SerializeField] private AudioClip hurtSfx;
-    [SerializeField] private AudioClip noAmmoSfx;
-    [SerializeField] private AudioClip reloadSfx;
     [SerializeField] private AudioClip deadSfx;
     // Input flags
     private bool isJump;
@@ -113,7 +102,6 @@ public class PlayerController : MonoBehaviour
     public States playerState { get; private set; }
     // Events
     public event Action<short> OnHealthChanged;
-    public event Action<short> OnAmmoChanged;
     public event Action OnDeath;
 
     private void Awake()
@@ -142,7 +130,6 @@ public class PlayerController : MonoBehaviour
     {
         //GameManager.Instance.RegisterPlayer(this);
         OnHealthChanged?.Invoke(hp);
-        OnAmmoChanged?.Invoke(ammo);
     }
 
     private void OnEnable()
@@ -153,7 +140,6 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Move.canceled += OnMoveCanceled;
         inputActions.Player.Jump.performed += OnJumpPerformed;
         inputActions.Player.Jump.canceled += OnJumpCanceled;
-        inputActions.Player.Attack.performed += OnAttackPerformed;
         inputActions.Player.Interact.performed += OnInteractPerformed;
         //GameManager.Instance.OnWinning += DisableControls;
     }
@@ -165,7 +151,6 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Move.canceled -= OnMoveCanceled;
         inputActions.Player.Jump.performed -= OnJumpPerformed;
         inputActions.Player.Jump.canceled -= OnJumpCanceled;
-        inputActions.Player.Attack.performed -= OnAttackPerformed;
         inputActions.Player.Interact.performed -= OnInteractPerformed;
         //GameManager.Instance.OnWinning -= DisableControls;
     }
@@ -278,7 +263,8 @@ public class PlayerController : MonoBehaviour
         jumpQueued = false;
         jumped = true;
         //Instantiate(jumpEffect, groundCheckLeft.position + jumpEffectOffset, Quaternion.identity);
-        //AudioManager.Instance.PlaySFX(jumpSfx);
+        if (jumpSfx != null)
+            AudioManager.Instance.PlaySFX(jumpSfx);
     }
 
     private void ExtendJump()
@@ -294,6 +280,7 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGrounded()
     {
+        bool wasGrounded = isGrounded;
         if (groundedCheckTimer > 0)
             return;
 
@@ -314,6 +301,13 @@ public class PlayerController : MonoBehaviour
             currentPlatform = null;
         }
 
+        // Player just landed
+        if (!wasGrounded && isGrounded)
+        {
+            if (landingSfx != null)
+                AudioManager.Instance.PlaySFX(landingSfx);
+        }
+
         if (isGrounded && rb.velocity.y <= 0)
         {
             coyoteTimer = 0;
@@ -331,6 +325,7 @@ public class PlayerController : MonoBehaviour
 
     private void CheckWall()
     {
+        bool wasSliding = isWallSliding;
         if (!hasWallSlide)
             return;
         if (regrabTimer > 0)
@@ -352,9 +347,17 @@ public class PlayerController : MonoBehaviour
         // Wall slide only when airborne, moving into wall, and touching wall
         // Player doesn't need to hold the direction to stay sliding
         if (!isWallSliding)
+        {
             isWallSliding = isTouchingWall && !isGrounded && moveInput.x != 0;
+        }
         else
             isWallSliding = isTouchingWall && !isGrounded;
+
+        // Player just attached to the wall
+        if (!wasSliding && isWallSliding)
+        {
+            AudioManager.Instance.PlaySFX(landingSfx);
+        }
 
         // Slow slide by default, fast if pressing down
         if (isWallSliding)
@@ -550,20 +553,6 @@ public class PlayerController : MonoBehaviour
         isJump = false;
     }
 
-    private void OnAttackPerformed(InputAction.CallbackContext ctx)
-    {
-        if (!isAlive || playerState == States.Damage)
-            return;
-        if (shotCdTimer > 0)
-            return;
-        if (ammo <= 0)
-        {
-            //AudioManager.Instance.PlaySFX(noAmmoSfx);
-            return;
-        }
-        //Shoot();
-    }
-
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
         if (!isAlive || playerState == States.Damage)
@@ -579,17 +568,6 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        //if (collision.gameObject.CompareTag("Solid"))
-        //{
-        //    ContactPoint2D contact = collision.GetContact(0);
-        //    Vector2 normal = contact.normal;
-
-        //    if (Mathf.Abs(normal.x) > Mathf.Abs(normal.y))
-        //    {
-        //        ChangeDirection();
-        //        TemporarilyIgnoreCollision(0.1f);
-        //    }
-        //}
         if (collision.gameObject.CompareTag("Enemy"))
         {
             //TODO
@@ -601,22 +579,6 @@ public class PlayerController : MonoBehaviour
     {
         if (ignoreCollision)
             return;
-        //if (collision.gameObject.CompareTag("Solid"))
-        //{
-        //    ContactPoint2D[] contacts = collision.contacts;
-        //    Vector2 normal;
-        //    foreach (ContactPoint2D contactPoint in contacts)
-        //    {
-        //        normal = contactPoint.normal;
-
-        //        if (Mathf.Abs(normal.x) > Mathf.Abs(normal.y))
-        //        {
-        //            ChangeDirection();
-        //            TemporarilyIgnoreCollision(0.1f);
-        //            return;
-        //        }
-        //    }
-        //}
     }
 
     public void TemporarilyIgnoreCollision(float duration)
@@ -810,18 +772,6 @@ public class PlayerController : MonoBehaviour
         animator.Update(0f);
     }
 
-    //private void AttackCooldown()
-    //{
-    //    shotCdTimer -= Time.deltaTime;
-    //    if (shotCdTimer <= 0)
-    //    {
-    //        if (ammo > 0)
-    //            AudioManager.Instance.PlaySFX(reloadSfx);
-    //        else
-    //            AudioManager.Instance.PlaySFX(noAmmoSfx);
-    //    }
-    //}
-
     private void StompBounce()
     {
         rb.velocity = new Vector2(rb.velocity.x, 0);
@@ -840,12 +790,6 @@ public class PlayerController : MonoBehaviour
         if (hp > maxHp)
             hp = maxHp;
         OnHealthChanged?.Invoke(hp);
-    }
-
-    public void Reload(short amount)
-    {
-        ammo += amount;
-        OnAmmoChanged?.Invoke(ammo);
     }
 
     public void PlayPickup()
@@ -870,20 +814,9 @@ public class PlayerController : MonoBehaviour
         OnHealthChanged?.Invoke(hp);
     }
 
-    public void SetAmmo(short ammo)
-    {
-        this.ammo = ammo;
-        OnAmmoChanged?.Invoke(ammo);
-    }
-
     public short GetHp()
     {
         return hp;
-    }
-
-    public short GetAmmo()
-    {
-        return ammo;
     }
 
     private void DisableControls()

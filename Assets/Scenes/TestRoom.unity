@@ -5908,6 +5908,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 6289277470019018427, guid: 119b9261af327be4783ce02347d94a6f, type: 3}
+      propertyPath: jumpSfx
+      value: 
+      objectReference: {fileID: 8300000, guid: ebe2dacf161d776438eedf3e919a2fe8, type: 3}
+    - target: {fileID: 6289277470019018427, guid: 119b9261af327be4783ce02347d94a6f, type: 3}
+      propertyPath: landingSfx
+      value: 
+      objectReference: {fileID: 8300000, guid: 200e9954e994a6c4394f39851c5c57d2, type: 3}
     - target: {fileID: 7981128512805815536, guid: 119b9261af327be4783ce02347d94a6f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.88
