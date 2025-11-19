@@ -18,3 +18,13 @@ MonoBehaviour:
     customLoop: 0
     loopStartSample: 0
     loopEndSample: 0
+  - sceneName: Level1
+    musicAddress: Assets/Sound/BGM/RICKS_PINEAL_SONG.wav
+    customLoop: 0
+    loopStartSample: 0
+    loopEndSample: 0
+  - sceneName: TestRoomV2
+    musicAddress: Assets/Sound/BGM/RICKS_PINEAL_SONG.wav
+    customLoop: 0
+    loopStartSample: 0
+    loopEndSample: 0
