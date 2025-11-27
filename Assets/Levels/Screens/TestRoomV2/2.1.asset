@@ -19,4 +19,4 @@ MonoBehaviour:
   rightScreen: {fileID: 0}
   cameraPosition: {x: 53.4, y: 18, z: -10}
   hasRespawn: 1
-  respawnPosition: {x: 44.7799, y: 14.75252}
+  respawnPosition: {x: 48.59, y: 14.75252}
