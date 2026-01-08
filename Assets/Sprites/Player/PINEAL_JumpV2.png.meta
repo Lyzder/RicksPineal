@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 10d21f4524761e54db074a498719e376
+guid: f596b12ec30c29b4b852f18929d324b1
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 19.5
+  spritePixelsToUnits: 19
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -110,127 +110,148 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Pineal_Run_V4_0
+      name: PINEAL_JumpV2_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 6
-        width: 18
-        height: 18
+        x: 6
+        y: 7
+        width: 17
+        height: 20
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8a95fb1bd0dd4e745b26e1fea6dce13f
-      internalID: 1961387790
+      spriteID: 881260a71181d3744a5c465a4b646b7c
+      internalID: -61626695
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pineal_Run_V4_1
+      name: PINEAL_JumpV2_1
       rect:
         serializedVersion: 2
-        x: 37
-        y: 6
-        width: 18
-        height: 18
+        x: 40
+        y: 7
+        width: 17
+        height: 20
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 586bea7ec1c2b2641a753a3fcb9ee5c2
-      internalID: -1199223036
+      spriteID: 72d86c73347ef6a499e919647cb1a3c8
+      internalID: -716283638
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pineal_Run_V4_6
+      name: PINEAL_JumpV2_2
       rect:
         serializedVersion: 2
-        x: 69
-        y: 6
-        width: 18
-        height: 18
+        x: 71
+        y: 7
+        width: 17
+        height: 20
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 465a35f8989d8124a91d80226aab073e
-      internalID: 310942625
+      spriteID: d475ecba52d75fa49a6846eec854d84d
+      internalID: -395366659
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pineal_Run_V4_2
+      name: PINEAL_JumpV2_3
       rect:
         serializedVersion: 2
-        x: 101
-        y: 6
-        width: 18
-        height: 18
+        x: 105
+        y: 7
+        width: 17
+        height: 20
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 476f5b95f8716a542b5f7cde08c332a0
-      internalID: 1107985081
+      spriteID: 2e996519ae78afa489a1f2dd240f5cb9
+      internalID: -825640086
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pineal_Run_V4_3
+      name: PINEAL_JumpV2_4
       rect:
         serializedVersion: 2
-        x: 133
-        y: 6
-        width: 18
-        height: 18
+        x: 135
+        y: 7
+        width: 17
+        height: 20
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 01148eab74a8c4544a85a2f0a4fe53e8
-      internalID: -263569015
+      spriteID: 0ac29e0bb9a20854a92216d0ebbe55c7
+      internalID: -579127777
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pineal_Run_V4_4
+      name: PINEAL_JumpV2_5
       rect:
         serializedVersion: 2
-        x: 164
-        y: 6
-        width: 18
-        height: 18
+        x: 169
+        y: 7
+        width: 17
+        height: 20
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9dc1dabb8c14f7b40b89793371e92c8a
-      internalID: -1308085042
+      spriteID: 09daf19ccc392bb4587138c3baacb8b4
+      internalID: -1558046850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PINEAL_JumpV2_6
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 7
+        width: 17
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49fecf97323c385479adf7328bdeb28c
+      internalID: -1894392892
       vertices: []
       indices: 
       edges: []
@@ -246,13 +267,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Pineal_Run_V4_0: 1961387790
-      Pineal_Run_V4_1: -1199223036
-      Pineal_Run_V4_2: 1107985081
-      Pineal_Run_V4_3: -263569015
-      Pineal_Run_V4_4: -1308085042
-      Pineal_Run_V4_5: -2112567250
-      Pineal_Run_V4_6: 310942625
+      PINEAL_JumpV2_0: -61626695
+      PINEAL_JumpV2_1: -716283638
+      PINEAL_JumpV2_2: -395366659
+      PINEAL_JumpV2_3: -825640086
+      PINEAL_JumpV2_4: -579127777
+      PINEAL_JumpV2_5: -1558046850
+      PINEAL_JumpV2_6: -1894392892
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
