@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62c7809de9a482f41be62136bfde0e23, type: 3}
-  m_Name: 6.1
+  m_Name: 8.0
   m_EditorClassIdentifier: 
-  gridPosition: {x: 6, y: 1}
+  gridPosition: {x: 8, y: 0}
   upScreen: {fileID: 0}
   downScreen: {fileID: 0}
   leftScreen: {fileID: 0}
   rightScreen: {fileID: 0}
-  cameraPosition: {x: 138.84, y: 18, z: -10}
-  hasRespawn: 1
-  respawnPosition: {x: 126.58, y: 19.37}
+  cameraPosition: {x: 181.56, y: 6, z: -10}
+  hasRespawn: 0
+  respawnPosition: {x: 174.7003, y: 21.95248}
