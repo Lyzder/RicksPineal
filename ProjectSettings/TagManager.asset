@@ -46,6 +46,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: New Layer 7
+    uniqueID: 3285022623
+    locked: 0
   - name: Background
     uniqueID: 2020472777
     locked: 0
@@ -60,6 +63,9 @@ TagManager:
     locked: 0
   - name: Platforms Foreground
     uniqueID: 2724599093
+    locked: 0
+  - name: Mid
+    uniqueID: 2451924409
     locked: 0
   - name: World Text
     uniqueID: 764268365
