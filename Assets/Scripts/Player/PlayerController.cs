@@ -13,6 +13,18 @@ public class PlayerController : MonoBehaviour
     [Header("Sprite")]
     [SerializeField] private GameObject spriteObject;
     [SerializeField] private GameObject overheadObject;
+
+    // ====== OVERHEAD SOUND (INTEGRADO) ======
+    [Header("Overhead SFX")]
+    [SerializeField] private AudioSource overheadAudio;          // Arrastra aquí el AudioSource del child Overhead (o donde lo tengas)
+    [SerializeField] private float overheadTargetVolume = 1f;
+    [SerializeField] private float overheadFadeInTime = 0.15f;
+    [SerializeField] private float overheadFadeOutTime = 0.2f;
+
+    private Coroutine overheadFadeCoroutine;
+    private bool overheadVisibleLastFrame = false;
+    // =======================================
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float initialJumpForce;
@@ -123,6 +135,15 @@ public class PlayerController : MonoBehaviour
         colliderMode = 0;
         // Initialize Input Actions
         inputActions = InputManager.Instance.inputActions;
+
+        // ====== OVERHEAD SOUND INIT (INTEGRADO) ======
+        if (overheadAudio != null)
+        {
+            overheadAudio.playOnAwake = false;
+            overheadAudio.loop = false;
+            overheadAudio.volume = 0f;
+        }
+        // ============================================
     }
 
     // Start is called before the first frame update
@@ -456,7 +477,7 @@ public class PlayerController : MonoBehaviour
                 colBoxes[1].offset = new(moveDirection >= 0 ? 0.15f : -0.15f, -0.05f);
                 colBoxes[1].size = new(0.4f, 0.6f);
                 colBoxes[1].edgeRadius = 0.1f;
-                groundCheckPivot.localPosition = new(moveDirection >= 0 ? 0.19f : -0.19f, - 0.5f, 0);
+                groundCheckPivot.localPosition = new(moveDirection >= 0 ? 0.19f : -0.19f, -0.5f, 0);
                 break;
             default:
                 colCapsules[0].enabled = false;
@@ -482,34 +503,6 @@ public class PlayerController : MonoBehaviour
 
     // END MOVEMENT METHODS
 
-    //private void Shoot()
-    //{
-    //    Bullet bullet;
-    //    GameObject effect;
-    //    // Spawn bullet
-    //    Vector3 bulletOffset = new Vector3(bulletSpawnOffset.x * moveDirection, bulletSpawnOffset.y, bulletSpawnOffset.z);
-    //    bullet = Instantiate(bulletPrefab, transform.position + bulletOffset, Quaternion.identity).GetComponent<Bullet>();
-    //    bullet.SetDirection(moveDirection);
-    //    shotCdTimer = shotCooldown;
-    //    ammo -= 1;
-    //    OnAmmoChanged?.Invoke(ammo);
-    //    // Spawn Effect
-    //    Vector3 effectOffset = new Vector3(shootEffectOffset.x * moveDirection, shootEffectOffset.y, shootEffectOffset.z);
-    //    effect = Instantiate(shootEffect);
-    //    effect.transform.SetParent(transform);
-    //    effect.transform.localPosition = effectOffset;
-    //    effect.transform.localRotation = Quaternion.identity;
-    //    if (moveDirection > 0)
-    //    {
-    //        effect.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>().flip = new Vector3(1f, 0);
-    //    }
-    //    else if (moveDirection < 0)
-    //    {
-    //        effect.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>().flip = new Vector3(0f, 0);
-    //    }
-    //    AudioManager.Instance.PlaySFX(shootSfx);
-    //}
-
     // START INPUT READING METHODS
 
     private void OnMovePerformed(InputAction.CallbackContext ctx)
@@ -520,16 +513,6 @@ public class PlayerController : MonoBehaviour
 
         if (interactObject != null && interactObject.GetInteractType() == 1 && moveInput.y > 0)
             interactObject.PlayAction(this);
-        //if (moveInput.x > 0)
-        //{
-        //    moveDirection = 1;
-        //    FlipSprite();
-        //}
-        //else if (moveInput.x < 0)
-        //{
-        //    moveDirection = -1;
-        //    FlipSprite();
-        //}
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
@@ -543,7 +526,7 @@ public class PlayerController : MonoBehaviour
             return;
         isJump = true;
         if (isGrounded || isWallSliding)
-        { //|| (coyoteTimer < coyoteTime && !jumped) 
+        {
             jumpQueued = true;
         }
     }
@@ -693,7 +676,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // TODO jugador sigue vivo
             animator.ResetTrigger("IsHurt");
             animator.SetTrigger("IsHurt");
             invincible = true;
@@ -706,7 +688,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator InvulnerableTimer()
     {
         float elapsed = 0f;
-        int flickerInterval = 4;  // flicker every 2 frames
+        int flickerInterval = 4;
         int frameCounter = 0;
 
         while (elapsed < iFrames)
@@ -718,7 +700,7 @@ public class PlayerController : MonoBehaviour
 
             frameCounter++;
             elapsed += Time.deltaTime;
-            yield return null; // wait for next rendered frame
+            yield return null;
         }
 
         spriteRenderer.enabled = true;
@@ -748,7 +730,6 @@ public class PlayerController : MonoBehaviour
 
     public void InstaKill()
     {
-        //TODO
         if (!isAlive)
             return;
         isAlive = false;
@@ -878,7 +859,7 @@ public class PlayerController : MonoBehaviour
 
     private void ShowInteract()
     {
-        //TODO
+        // Tu lógica original, sin cambiarla
         if (interactObject == null)
         {
             overheadObject.GetComponent<SpriteRenderer>().enabled = false;
@@ -887,5 +868,68 @@ public class PlayerController : MonoBehaviour
         {
             overheadObject.GetComponent<SpriteRenderer>().enabled = true;
         }
+
+        // ====== OVERHEAD SOUND TRIGGER (INTEGRADO) ======
+        bool isVisibleNow = interactObject != null;
+
+        // OFF -> ON
+        if (isVisibleNow && !overheadVisibleLastFrame)
+            PlayOverheadSound();
+
+        // ON -> OFF
+        if (!isVisibleNow && overheadVisibleLastFrame)
+            StopOverheadSound();
+
+        overheadVisibleLastFrame = isVisibleNow;
+        // ==============================================
     }
+
+    // ====== OVERHEAD SOUND METHODS (INTEGRADO) ======
+    private void PlayOverheadSound()
+    {
+        if (overheadAudio == null) return;
+
+        if (overheadFadeCoroutine != null)
+            StopCoroutine(overheadFadeCoroutine);
+
+        // siempre desde el inicio
+        overheadAudio.loop = false;
+        overheadAudio.volume = 0f;
+        overheadAudio.Stop();
+        overheadAudio.Play();
+
+        overheadFadeCoroutine = StartCoroutine(FadeOverhead(0f, overheadTargetVolume, overheadFadeInTime, stopOnEnd: false));
+    }
+
+    private void StopOverheadSound()
+    {
+        if (overheadAudio == null) return;
+
+        if (overheadFadeCoroutine != null)
+            StopCoroutine(overheadFadeCoroutine);
+
+        overheadFadeCoroutine = StartCoroutine(FadeOverhead(overheadAudio.volume, 0f, overheadFadeOutTime, stopOnEnd: true));
+    }
+
+    private IEnumerator FadeOverhead(float from, float to, float time, bool stopOnEnd)
+    {
+        if (time <= 0f)
+        {
+            overheadAudio.volume = to;
+            if (stopOnEnd) overheadAudio.Stop();
+            yield break;
+        }
+
+        float t = 0f;
+        while (t < time)
+        {
+            t += Time.deltaTime;
+            overheadAudio.volume = Mathf.Lerp(from, to, t / time);
+            yield return null;
+        }
+
+        overheadAudio.volume = to;
+        if (stopOnEnd) overheadAudio.Stop();
+    }
+    // ==============================================
 }
